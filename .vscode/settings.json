@@ -1,0 +1,6 @@
+{
+    "clang-format.language.cpp.style": "google",
+    "clang-format.language.c.style": "google",
+    "editor.formatOnSave": true,
+    "C_Cpp.errorSquiggles": "enabled"
+}
