@@ -1,22 +1,33 @@
-#include <Arduino.h>
-#include <SoftwareSerial.h>
-#include <string.h>
+#include "main.hpp"
 
-#define GPS_TX_PIN 1
-#define GPS_RX_PIN 0
-String sendMessage;
-String receivedMessage;
-String gprmc_msg;
-// float latitude_conv;
-char latitude_string[12];
-char longitude_string[13];
-char latitude_direction, longitude_direction;
-double latitude, longitude, latitude_in_deg, longitude_in_deg;
-double latitude_of_target = 12.9453, longitude_of_target = 80.2122, distance;
-int i, j;
-SoftwareSerial Serial1(GPS_RX_PIN, GPS_TX_PIN);
-using namespace std;
+using namespace gps_with_imu;
 
-void setup() {}
+void setup() {
+  Serial.begin(9600);
+  gps.initialize(gps_serial_);
+  gps.get_target_coordinates(target_latitude, target_longitude);
+  Serial.print("Target latitude : ");
+  Serial.println(target_latitude);
+  Serial.print("Target longitude : ");
+  Serial.println(target_longitude);
+  delay(1000);
+}
 
-void loop() {}
+void loop() {
+  gps.get_gps_data(gps_serial_, gps_data_);
+  if (gps_data_.gps_status) {
+    Serial.println("GPS is locked.");
+    gps.get_distance(target_distance, gps_data_.latitude_in_degrees,
+                     gps_data_.longitude_in_degrees, target_latitude,
+                     target_longitude);
+    Serial.print("Distance to target : ");
+    Serial.println(target_distance);
+    gps.get_direction(target_bearing, gps_data_.latitude_in_degrees,
+                      gps_data_.longitude_in_degrees, target_latitude,
+                      target_longitude);
+    Serial.print("Direction to target : ");
+    Serial.println(target_bearing);
+  } else {
+    Serial.println("GPS is not locked.");
+  }
+}
