@@ -24,12 +24,18 @@ void Gps::initialize(SoftwareSerial &gps_serial_) {
 void Gps::get_target_coordinates(double &target_latitude,
                                  double &target_longitude) {
   Serial.print("Enter target latitude : ");
+  while (!(Serial.available()) > 0) {
+    delay(1);
+  }
   target_latitude = Serial.parseFloat();
+  while (!(Serial.available()) > 0) {
+    delay(1);
+  }
   Serial.print("Enter target longitude : ");
   target_longitude = Serial.parseFloat();
 }
 
-void Gps::get_gprmc_message(SoftwareSerial &gps_serial_, gps_data &gps_data_) {
+void Gps::get_gprmc_message(SoftwareSerial &gps_serial_) {
   String recieved_message;
   int i = 0;
   while (gps_serial_.available() > 0) {
@@ -44,14 +50,14 @@ void Gps::get_gprmc_message(SoftwareSerial &gps_serial_, gps_data &gps_data_) {
     }
   }
 }
-void Gps::get_gps_status(gps_data &gps_data_) {
+void Gps::get_gps_status() {
   if (gps_data_.gprmc_message[18] == 'A') {
     gps_data_.gps_status = true;
   } else {
     gps_data_.gps_status = false;
   }
 }
-void Gps::get_time(gps_data &gps_data_) {
+void Gps::get_time() {
   char time_string[10];
   int i;
   for (i = 7; i <= 16; i++) {
@@ -59,7 +65,7 @@ void Gps::get_time(gps_data &gps_data_) {
   }
   gps_data_.time = atof(time_string);
 }
-void Gps::get_date(gps_data &gps_data_) {
+void Gps::get_date() {
   char date_string[6];
   int i;
   for (i = 57; i <= 62; i++) {
@@ -67,7 +73,7 @@ void Gps::get_date(gps_data &gps_data_) {
     gps_data_.date = atof(date_string);
   }
 }
-void Gps::get_speed(gps_data &gps_data_) {
+void Gps::get_speed() {
   char speed_string[3];
   int i;
   for (i = 47; i <= 49; i++) {
@@ -75,7 +81,7 @@ void Gps::get_speed(gps_data &gps_data_) {
   }
   gps_data_.speed = atof(speed_string);
 }
-void Gps::get_lat_long_in_degrees(gps_data &gps_data_) {
+void Gps::get_lat_long_in_degrees() {
   gps_data_.latitude_in_degrees = (int)gps_data_.latitude_in_ddmmss / 100;
   gps_data_.longitude_in_degrees = (int)gps_data_.longitude_in_ddmmss / 100;
   gps_data_.latitude_in_degrees =
@@ -93,7 +99,7 @@ void Gps::get_lat_long_in_degrees(gps_data &gps_data_) {
     gps_data_.longitude_in_degrees = -gps_data_.longitude_in_degrees;
   }
 }
-void Gps::get_lat_long(gps_data &gps_data_) {
+void Gps::get_lat_long() {
   int i = 0, j = 0;
   char latitude_string[12], longitude_string[13];
   char latitude_direction, longitude_direction;
@@ -122,23 +128,22 @@ void Gps::get_lat_long(gps_data &gps_data_) {
     gps_data_.latitude_in_degrees = 0.0;
     gps_data_.longitude_in_degrees = 0.0;
   }
-  get_lat_long_in_degrees(gps_data_);
+  get_lat_long_in_degrees();
 }
 
-void Gps::get_gps_data(SoftwareSerial &gps_serial_, gps_data &gps_data_) {
-  get_gprmc_message(gps_serial_, gps_data_);
-  get_time(gps_data_);
-  get_date(gps_data_);
-  get_speed(gps_data_);
-  get_lat_long(gps_data_);
+void Gps::get_gps_data(SoftwareSerial &gps_serial_) {
+  get_gprmc_message(gps_serial_);
+  get_time();
+  get_date();
+  get_speed();
+  get_lat_long();
 }
-void Gps::get_distance(double &distance, double latitude_in_degrees,
-                       double longitude_in_degrees, double target_latitude,
+void Gps::get_distance(double &distance, double target_latitude,
                        double target_longitude) {
   double latitude_in_radians, longitude_in_radians, target_latitude_radians,
       target_longitude_radians, delta_latitude, delta_longitude;
-  latitude_in_radians = to_radians(latitude_in_degrees);
-  longitude_in_radians = to_radians(longitude_in_degrees);
+  latitude_in_radians = to_radians(gps_data_.latitude_in_degrees);
+  longitude_in_radians = to_radians(gps_data_.longitude_in_degrees);
   target_latitude_radians = to_radians(target_latitude);
   target_longitude_radians = to_radians(target_longitude);
   delta_latitude = target_latitude_radians - latitude_in_radians;
@@ -149,13 +154,12 @@ void Gps::get_distance(double &distance, double latitude_in_degrees,
                          cos(delta_longitude));
 }
 
-void Gps::get_direction(double &direction, double latitude_in_degrees,
-                        double longitude_in_degrees, double target_latitude,
+void Gps::get_direction(double &direction, double target_latitude,
                         double target_longitude) {
   double latitude_in_radians, longitude_in_radians, target_latitude_radians,
       target_longitude_radians, delta_longitude;
-  latitude_in_radians = to_radians(latitude_in_degrees);
-  longitude_in_radians = to_radians(longitude_in_degrees);
+  latitude_in_radians = to_radians(gps_data_.latitude_in_degrees);
+  longitude_in_radians = to_radians(gps_data_.longitude_in_degrees);
   target_latitude_radians = to_radians(target_latitude);
   target_longitude_radians = to_radians(target_longitude);
   delta_longitude = target_longitude_radians - longitude_in_radians;
