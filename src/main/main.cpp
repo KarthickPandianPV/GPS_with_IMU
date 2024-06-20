@@ -1,15 +1,11 @@
 #include "main.hpp"
-using namespace gps_with_imu;
+
 SoftwareSerial gps_serial_(GPS_RX_PIN, GPS_TX_PIN);
-double target_latitude = 15.35, target_longitude = 73.68, target_distance,
-       target_bearing;
 Gps gps;
 gps_data gps_data_;
 Imu imu;
-int number_of_samples = 3000;
-double vy = 0, sy = 0;
-double initial = 0, delta = 0;
-vec3f acceleration, magnetic_field;
+Datalogger datalogger;
+
 void setup() {
   Serial.begin(9600);
   // gps.initialize(gps_serial_);
@@ -20,6 +16,7 @@ void setup() {
   // Serial.println(target_longitude);
   // delay(1000);
   imu.initialize();
+  datalogger.initialize();
   imu.calculateOffsets(number_of_samples);
 }
 
@@ -43,18 +40,19 @@ void loop() {
   magnetic_field = imu.calibrateMagnetometer();
   if ((acceleration.y <= 0.3) && (acceleration.y >= -0.3)) {
     acceleration.y = 0;
-    vy = 0;
+    velocity.y = 0;
   }
   double delta = millis() - initial;
   delta /= 1000;
-  vy += acceleration.y * delta;
-  sy += (vy * delta);
+  velocity.y += acceleration.y * delta;
+  distance.y += (velocity.y * delta);
+  datalogger.write_data(magnetic_field, acceleration, velocity, distance);
   Serial.print("ay: ");
   Serial.print(acceleration.y, 4);
   Serial.print("   sy: ");
-  Serial.print(sy, 5);
+  Serial.print(distance.y, 5);
   Serial.print("   vy: ");
-  Serial.println(vy, 5);
+  Serial.println(velocity.y, 5);
   // delay(1);
 }
 
