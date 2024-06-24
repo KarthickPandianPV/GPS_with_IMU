@@ -6,20 +6,20 @@ Imu::~Imu() {}
 
 void Imu::initialize() {
   accelerometer_status_ = accelerometer_.begin();
-  if (accelerometer_status_)
-    Serial.println("Accelerometer initialized successfully!");
-  else
-    Serial.println("Failed to initialize the accelerometer!");
+  // if (accelerometer_status_)
+  //   Serial.println("Accelerometer initialized successfully!");
+  // else
+  //   Serial.println("Failed to initialize the accelerometer!");
   magnetometer_status_ = magnetometer_.begin();
-  if (magnetometer_status_)
-    Serial.println("magnetometer initialized successfully!");
-  else
-    Serial.println("Failed to initialize the magnetometer!");
+  // if (magnetometer_status_)
+  //   Serial.println("magnetometer initialized successfully!");
+  // else
+  //   Serial.println("Failed to initialize the magnetometer!");
   gyroscope_status_ = 0;
-  if (gyroscope_status_)
-    Serial.println("Gyroscope initialized successfully!");
-  else
-    Serial.println("Failed to initialize the gyroscope!");
+  // if (gyroscope_status_)
+  //   Serial.println("Gyroscope initialized successfully!");
+  // else
+  //   Serial.println("Failed to initialize the gyroscope!");
 }
 
 void Imu::calculateOffsets(int number_of_samples) {

@@ -41,6 +41,6 @@ class Imu {
   void calculateOffsets(int number_of_samples);
   void UpdateReadings();
   vec3f calibrateAccelerometer();
-  vec3f Imu::calibrateMagnetometer();
+  vec3f calibrateMagnetometer();
 };
 }  // namespace gps_with_imu
