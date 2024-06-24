@@ -7,7 +7,6 @@
 
 #include "GPS/gps.hpp"
 #include "IMU/imu.hpp"
-#include "DATALOGGER/datalogger.hpp"
 #include "vec3f.hpp"
 
 #define GPS_TX_PIN 1
@@ -26,6 +25,5 @@ extern double target_latitude, target_longitude, target_distance,
     target_bearing;
 extern Gps gps;
 extern Imu imu;
-extern Datalogger datalogger;
 
 #endif  // MAIN_HPP

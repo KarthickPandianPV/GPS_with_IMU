@@ -4,7 +4,6 @@ SoftwareSerial gps_serial_(GPS_RX_PIN, GPS_TX_PIN);
 Gps gps;
 gps_data gps_data_;
 Imu imu;
-Datalogger datalogger;
 
 void setup() {
   Serial.begin(9600);
@@ -16,7 +15,6 @@ void setup() {
   // Serial.println(target_longitude);
   // delay(1000);
   imu.initialize();
-  datalogger.initialize();
   imu.calculateOffsets(number_of_samples);
 }
 
@@ -46,7 +44,6 @@ void loop() {
   delta /= 1000;
   velocity.y += acceleration.y * delta;
   distance.y += (velocity.y * delta);
-  datalogger.write_data(magnetic_field, acceleration, velocity, distance);
   Serial.print("ay: ");
   Serial.print(acceleration.y, 4);
   Serial.print("   sy: ");
