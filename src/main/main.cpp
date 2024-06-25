@@ -1,30 +1,36 @@
 #include "main.hpp"
 
-SoftwareSerial gps_serial_(GPS_RX_PIN, GPS_TX_PIN);
-Gps gps;
-// Imu imu;
-
+// SoftwareSerial gps_serial_(GPS_RX_PIN, GPS_TX_PIN);
+// Gps gps;
+Imu imu;
+double a = 8.8827, b = -1.665, c = 0;
 void setup() {
-  Serial.begin(9600);
+  // Serial.begin(9600);
+  // while (!Serial) {
+  //   Serial.println("Serial not available.");
+  //   delay(1);
+  // }
+  Wire.setSCL(PB6);
+  Wire.setSDA(PB7);
+  Wire.begin();
   // gps.initialize(gps_serial_);
   // // gps.get_target_coordinates(target_latitude, target_longitude);
   // Serial.print("Target latitude : ");
   // Serial.println(target_latitude);
-  Serial.print("Target longitude : ");
+  // Serial.print("Target longitude : ");
   // Serial.println(target_longitude);
   // delay(1000);
   initializeCommunication();
-  // imu.initialize();
+  imu.initialize();
+  imu.initializeAhrs();
   // imu.calculateOffsets(number_of_samples);
+  c = a - b;
+  Serial.println(c);
 }
 
 void loop() {
-  // long initial = millis();
-  for (int i = 0; i < 1000; i++) {
-    acceleration.x = i;
-    acceleration.y = i;
-    acceleration.z = i;
-  }
+  long initial = millis();
+
   // gps.get_gps_data(gps_serial_);
   // if (gps_data_.gps_status) {
   //   Serial.println("GPS is locked.");
@@ -38,25 +44,27 @@ void loop() {
   //   Serial.println("GPS is not locked..!");
   // }
   // Serial.println(gps_data_.gprmc_message);
-  // imu.UpdateReadings();
-  // acceleration = imu.calibrateAccelerometer();
-  // magnetic_field = imu.calibrateMagnetometer();
+  imu.UpdateReadings();
+  acceleration = imu.calibrateAccelerometer();
+  magnetic_field = imu.calibrateMagnetometer();
+  acceleration = imu.getGlobalFrameAcceleration();
   // if ((acceleration.y <= 0.3) && (acceleration.y >= -0.3)) {
   //   acceleration.y = 0;
   //   velocity.y = 0;
   // }
-  // double delta = millis() - initial;
-  // delta /= 1000;
-  // velocity.y += acceleration.y * delta;
-  // distance.y += (velocity.y * delta);
+  double delta = millis() - initial;
+  delta /= 1000;
+  velocity.y += acceleration.y * delta;
+  distance.y += (velocity.y * delta);
   sendData(magnetic_field, acceleration, velocity, distance);
-  // Serial.print("ay: ");
-  // Serial.println(acceleration.y, 4);
-  // Serial.print("   sy: ");
-  // Serial.print(distance.y, 5);
-  // Serial.print("   vy: ");
-  // Serial.println(velocity.y, 5);
-  // delay(1);
+  checkForCommands();
+  delay(10);
+  // Serial.print("   ax: ");
+  // Serial.print(acceleration.x, 4);
+  // Serial.print("   ay: ");
+  // Serial.print(acceleration.y, 5);
+  // Serial.print("   az: ");
+  // Serial.println(acceleration.z, 5);
 }
 
 // Serial.print("ax: ");

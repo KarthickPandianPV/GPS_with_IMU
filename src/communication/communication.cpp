@@ -11,17 +11,18 @@ ros::Publisher magnetic_field_publisher("magnetic_field", &magnetic_field_msg);
 ros::Publisher acceleration_publisher("acceleration", &acceleration_msg);
 ros::Publisher velocity_publisher("velocity", &velocity_msg);
 ros::Publisher distance_publisher("distance", &distance_msg);
-
+namespace gps_with_imu {
 void initializeCommunication() {
+  nh.getHardware()->setBaud(115200);
   nh.initNode();
   nh.advertise(acceleration_publisher);
   nh.advertise(magnetic_field_publisher);
   nh.advertise(velocity_publisher);
   nh.advertise(distance_publisher);
-  //   Serial.println("ROS communication initialized");
+  Serial.println("ROS communication initialized");
 }
-void sendData(vec3f& magnetic_field, vec3f& acceleration, vec3f& velocity,
-              vec3f& distance) {
+void sendData(vec3f magnetic_field, vec3f acceleration, vec3f velocity,
+              vec3f distance) {
   acceleration_msg.x = acceleration.x;
   acceleration_msg.y = acceleration.y;
   acceleration_msg.z = acceleration.z;
@@ -41,7 +42,8 @@ void sendData(vec3f& magnetic_field, vec3f& acceleration, vec3f& velocity,
   magnetic_field_publisher.publish(&magnetic_field_msg);
   velocity_publisher.publish(&velocity_msg);
   distance_publisher.publish(&distance_msg);
-  //   Serial.println("Data sent");
+  // Serial.println("Data sent");
 }
 
 void checkForCommands() { nh.spinOnce(); }
+}  // namespace gps_with_imu

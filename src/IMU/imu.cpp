@@ -50,7 +50,7 @@ void Imu::calculateOffsets(int number_of_samples) {
   gyroscope_offset_.axis.x /= number_of_samples;
   gyroscope_offset_.axis.y /= number_of_samples;
   gyroscope_offset_.axis.z /= number_of_samples;
-  accelerometer_offset_.axis.z -= 0;
+  accelerometer_offset_.axis.z -= G;
   // Serial.print("Offset calculation time: ");
   // Serial.println(delta);
   // Serial.print("ax: ");
@@ -74,29 +74,83 @@ void Imu::UpdateReadings() {
   raw_magnetometer_reading_.y = magnetometer_event.magnetic.y;
   raw_magnetometer_reading_.z = magnetometer_event.magnetic.z;
   raw_gyroscope_reading_ = {0, 0, 0};
+  Serial.print("ax: ");
+  Serial.print(raw_accelerometer_reading_.x, 6);
+  Serial.print("   ");
+  Serial.print("ay: ");
+  Serial.print(raw_accelerometer_reading_.y, 6);
+  Serial.print("   ");
+  Serial.print("az: ");
+  Serial.print(raw_accelerometer_reading_.z, 6);
+  Serial.print("   ");
+  // Serial.print("Offset calculation time: ");
+  // Serial.println(delta);
+  // Serial.print("ax: ");
+  // Serial.print(accelerometer_offset_.axis.x, 6);
+  // Serial.print("   ");
+  // Serial.print("ay: ");
+  // Serial.print(accelerometer_offset_.axis.y, 6);
+  // Serial.print("   ");
+  // Serial.print("az: ");
+  // Serial.print(accelerometer_offset_.axis.z, 6);
+  // Serial.println("   ");
 }
 
 vec3f Imu::calibrateAccelerometer() {
-  FusionVector accelerometer = {raw_accelerometer_reading_.x,
-                                raw_accelerometer_reading_.y,
-                                raw_accelerometer_reading_.z};
-  accelerometer = FusionCalibrationInertial(
-      accelerometer, accelerometer_misalignment_, accelerometer_sensitivity_,
-      accelerometer_offset_);
-  acceleration_ = {accelerometer.axis.x, accelerometer.axis.y,
-                   accelerometer.axis.z};
-
-  return acceleration_;
+  acceleration_.axis.x =
+      raw_accelerometer_reading_.x - accelerometer_offset_.axis.x;
+  acceleration_.axis.y =
+      raw_accelerometer_reading_.y - accelerometer_offset_.axis.y;
+  acceleration_.axis.z =
+      raw_accelerometer_reading_.z - accelerometer_offset_.axis.z;
+  vec3f acceleration = {acceleration_.axis.x, acceleration_.axis.y,
+                        acceleration_.axis.z};
+  return acceleration;
 }
 
 vec3f Imu::calibrateMagnetometer() {
-  FusionVector magnetometer = {raw_magnetometer_reading_.x,
-                               raw_magnetometer_reading_.y,
-                               raw_magnetometer_reading_.z};
-  magnetometer = FusionCalibrationMagnetic(magnetometer, soft_iron_matrix_,
-                                           hard_iron_offset_);
-  magnetic_field_ = {magnetometer.axis.x, magnetometer.axis.y,
-                     magnetometer.axis.z};
-  return magnetic_field_;
+  magnetic_field_ = {raw_magnetometer_reading_.x, raw_magnetometer_reading_.y,
+                     raw_magnetometer_reading_.z};
+  magnetic_field_ = FusionCalibrationMagnetic(
+      magnetic_field_, soft_iron_matrix_, hard_iron_offset_);
+  vec3f magnetic_field = {magnetic_field_.axis.x, magnetic_field_.axis.y,
+                          magnetic_field_.axis.z};
+  return magnetic_field;
+}
+
+void Imu::initializeAhrs() {
+  FusionOffsetInitialise(&offset, SAMPLE_RATE);
+  FusionAhrsInitialise(&ahrs);
+
+  const FusionAhrsSettings settings = {
+      .convention = FusionConventionNwu,
+      .gain = 1.0f,
+      .gyroscopeRange = 250.0f,
+      .accelerationRejection = 20.0f,
+      .magneticRejection = 20.0f,
+      .recoveryTriggerPeriod = 3 * SAMPLE_RATE,
+  };
+  FusionAhrsSetSettings(&ahrs, &settings);
+  Serial.println("Ahrs initialized");
+}
+vec3f Imu::getGlobalFrameAcceleration() {
+  current_time = millis();
+  deltaTime = current_time - prev_time;
+  prev_time = current_time;
+  if (start) {
+    start = !start;
+    deltaTime = 0;
+  }
+  deltaTime = deltaTime / 1000;
+
+  FusionAhrsUpdate(&ahrs, angular_velocity_, acceleration_, magnetic_field_,
+                   deltaTime);
+
+  acceleration_ = FusionAhrsGetEarthAcceleration(&ahrs);
+
+  vec3f earth_acceleration = {acceleration_.axis.x, acceleration_.axis.y,
+                              acceleration_.axis.z};
+  // Serial.println("Earth acceleration obtained");
+  return earth_acceleration;
 }
 }  // namespace gps_with_imu

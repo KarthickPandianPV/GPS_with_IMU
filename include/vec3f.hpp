@@ -1,10 +1,9 @@
 #ifndef GPS_WITH_IMU_INCLUDE_VEC3F_HPP
 #define GPS_WITH_IMU_INCLUDE_VEC3F_HPP
 typedef struct vec3f {
-    double x;
-    double y;
-    double z;
+  float x;
+  float y;
+  float z;
 };
-
 
 #endif  // GPS_WITH_IMU_INCLUDE_VEC3F_HPP

@@ -5,10 +5,13 @@
 #include "Fusion.h"
 #include "vec3f.hpp"
 #define G 9.80665
+#define SAMPLE_RATE 100
 
 namespace gps_with_imu {
 class Imu {
  private:
+  FusionOffset offset;
+  FusionAhrs ahrs;
   Adafruit_LSM303_Accel_Unified accelerometer_ =
       Adafruit_LSM303_Accel_Unified(54321);
   Adafruit_LSM303_Mag_Unified magnetometer_ =
@@ -22,7 +25,7 @@ class Imu {
   const FusionMatrix accelerometer_misalignment_ = {
       1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
   const FusionVector accelerometer_sensitivity_ = {1.0f, 1.0f, 1.0f};
-  FusionVector accelerometer_offset_ = {0.0f, 0.0f, 0.0f};
+  FusionVector accelerometer_offset_ = {0.0868, 0.31819, -1.0666};
 
   FusionMatrix soft_iron_matrix_ = {0.971,  -0.048, -0.024, -0.048, 0.972,
                                     -0.011, -0.024, -0.011, 1.063};
@@ -30,9 +33,11 @@ class Imu {
 
   vec3f raw_accelerometer_reading_, raw_gyroscope_reading_,
       raw_magnetometer_reading_;
-  vec3f acceleration_, angular_velocity_, magnetic_field_;
+  FusionVector acceleration_, angular_velocity_, magnetic_field_;
 
   bool accelerometer_status_, magnetometer_status_, gyroscope_status_;
+  bool start = true;
+  double current_time = millis(), prev_time = current_time, deltaTime = 0;
 
  public:
   Imu(/* args */);
@@ -42,5 +47,7 @@ class Imu {
   void UpdateReadings();
   vec3f calibrateAccelerometer();
   vec3f calibrateMagnetometer();
+  void initializeAhrs();
+  vec3f getGlobalFrameAcceleration();
 };
 }  // namespace gps_with_imu
