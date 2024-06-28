@@ -14,10 +14,9 @@
 #define GPS_RX_PIN 0
 using namespace gps_with_imu;
 
-int number_of_samples = 5000;
-vec3f acceleration;
-vec3f magnetic_field = {0, 0, 0};
-vec3f velocity = {0, 0, 0}, distance = {0, 0, 0};
+int number_of_samples = 2000;
+vec3f acceleration, angular_velocity, magnetic_field, earth_acceleration,
+    euler_orientation;
 double initial_time = 0, delta_time = 0;
 double target_latitude = 15.35, target_longitude = 73.68, target_distance,
        target_bearing;

@@ -19,8 +19,8 @@
 // extern ros::Publisher distance_publisher;
 namespace gps_with_imu {
 void initializeCommunication();
-void sendData(vec3f magnetic_field, vec3f acceleration, vec3f velocity,
-              vec3f distance);
+void sendData(vec3f acceleration, vec3f angular_velocity, vec3f magnetic_field,
+              vec3f earth_acceleration, vec3f orientation);
 void checkForCommands();
 }  // namespace gps_with_imu
 #endif  // GPS_WITH_IMU_COMMUNICATION_COMMUNICATION_HPP&

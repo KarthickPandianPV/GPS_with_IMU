@@ -3,7 +3,6 @@
 // SoftwareSerial gps_serial_(GPS_RX_PIN, GPS_TX_PIN);
 // Gps gps;
 Imu imu;
-double a = 8.8827, b = -1.665, c = 0;
 void setup() {
   // Serial.begin(9600);
   // while (!Serial) {
@@ -21,16 +20,12 @@ void setup() {
   // Serial.println(target_longitude);
   // delay(1000);
   initializeCommunication();
-  imu.initialize();
+  imu.MPUinitialize();
   imu.initializeAhrs();
-  // imu.calculateOffsets(number_of_samples);
-  c = a - b;
-  Serial.println(c);
+  imu.MPUcalculateOffsets(number_of_samples);
 }
 
 void loop() {
-  long initial = millis();
-
   // gps.get_gps_data(gps_serial_);
   // if (gps_data_.gps_status) {
   //   Serial.println("GPS is locked.");
@@ -44,45 +39,69 @@ void loop() {
   //   Serial.println("GPS is not locked..!");
   // }
   // Serial.println(gps_data_.gprmc_message);
-  imu.UpdateReadings();
-  acceleration = imu.calibrateAccelerometer();
-  magnetic_field = imu.calibrateMagnetometer();
-  acceleration = imu.getGlobalFrameAcceleration();
-  // if ((acceleration.y <= 0.3) && (acceleration.y >= -0.3)) {
-  //   acceleration.y = 0;
-  //   velocity.y = 0;
-  // }
-  double delta = millis() - initial;
-  delta /= 1000;
-  velocity.y += acceleration.y * delta;
-  distance.y += (velocity.y * delta);
-  sendData(magnetic_field, acceleration, velocity, distance);
+  imu.MPUupdateReadings();
+  imu.calibrateImu();
+  imu.updateOrientation();
+  acceleration = imu.getAcceleration();
+  angular_velocity = imu.getAngularVelocity();
+  magnetic_field = imu.getMagneticField();
+  earth_acceleration = imu.getEarthAcceleration();
+  euler_orientation = imu.getEulerOrientation();
+  sendData(acceleration, angular_velocity, magnetic_field, earth_acceleration,
+           euler_orientation);
   checkForCommands();
-  delay(10);
   // Serial.print("   ax: ");
   // Serial.print(acceleration.x, 4);
   // Serial.print("   ay: ");
   // Serial.print(acceleration.y, 5);
   // Serial.print("   az: ");
-  // Serial.println(acceleration.z, 5);
+  // Serial.print(acceleration.z, 5);
+
+  // Serial.print("   gx: ");
+  // Serial.print(angular_velocity.x, 4);
+  // Serial.print("   gy: ");
+  // Serial.print(angular_velocity.y, 5);
+  // Serial.print("   gz: ");
+  // Serial.print(angular_velocity.z, 5);
+
+  // Serial.print("   mx: ");
+  // Serial.print(magnetic_field.x, 4);
+  // Serial.print("   my: ");
+  // Serial.print(magnetic_field.y, 5);
+  // Serial.print("   mz: ");
+  // Serial.print(magnetic_field.z, 5);
+
+  // Serial.print("   ax': ");
+  // Serial.print(earth_acceleration.x, 4);
+  // Serial.print("   ay': ");
+  // Serial.print(earth_acceleration.y, 5);
+  // Serial.print("   az': ");
+  // Serial.println(earth_acceleration.z, 5);
+
+  // Serial.print("   roll: ");
+  // Serial.print(euler_orientation.x);
+  // Serial.print("   pitch: ");
+  // Serial.print(euler_orientation.y);
+  // Serial.print("   yaw");
+  // Serial.println(euler_orientation.z);
+  delay(10);
 }
 
-// Serial.print("ax: ");
-// Serial.print(acceleration.x, 6);
-// Serial.print("   ");
-// Serial.print("ay: ");
-// Serial.print(accelerxcation.y, 6);
-// Serial.print("   ");
-// Serial.print("az: ");
-// Serial.print(acceleration.z, 6);
-// Serial.println("   ");
-// Serial.print("mx: ");
-// Serial.print(magnetic_field.x, 6);
-// Serial.print("   ");
-// Serial.print("my: ");
-// Serial.print(magnetic_field.y, 6);
-// Serial.print("   ");
-// Serial.print("mz: ");
-// Serial.print(magnetic_field.z, 6);
-// Serial.println("   ");
-// delay(100);
+//  if ((acceleration.x <= 0.1) && (acceleration.x >= -0.1)) {
+//     acceleration.x = 0;
+//   }
+//   if ((acceleration.y <= 0.1) && (acceleration.y >= -0.1)) {
+//     acceleration.y = 0;
+//   }
+//   if ((acceleration.z <= 0.1) && (acceleration.z >= -0.1)) {
+//     acceleration.z = 0;
+//   }
+//   if ((magnetic_field.x <= 0.1) && (magnetic_field.x >= -0.1)) {
+//     magnetic_field.x = 0;
+//   }
+//   if ((magnetic_field.y <= 0.1) && (magnetic_field.y >= -0.1)) {
+//     magnetic_field.y = 0;
+//   }
+//   if ((magnetic_field.z <= 0.1) && (magnetic_field.z >= -0.1)) {
+//     magnetic_field.z = 0;
+//   }
