@@ -1,11 +1,9 @@
 #include <Adafruit_LSM303_U.h>
 #include <Adafruit_Sensor.h>
-#include <MPU9250_WE.h>
 #include <Wire.h>
 #include <SoftwareSerial.h>
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
-// #include <Arduino.h>
 
 #include "Fusion.h"
 #include "vec3f.hpp"
@@ -22,7 +20,7 @@
 #define GYROSCOPE_SENSITIVITY_1000 0.01525878906 * 2
 #define GYROSCOPE_SENSITIVITY_2000 0.03051757812 * 2
 
-namespace gps_with_imu
+namespace imu_data_acquisition
 {
     class Imu
     {
@@ -35,7 +33,6 @@ namespace gps_with_imu
         FusionAhrs ahrs;
         FusionEuler euler;
         Adafruit_MPU6050 mpu6050_;
-        // MPU9250_WE mpu9250_ = MPU9250_WE(MPU9250_ADDR);
         Adafruit_LSM303_Accel_Unified accelerometer_ =
             Adafruit_LSM303_Accel_Unified(54321);
         Adafruit_LSM303_Mag_Unified magnetometer_ =
@@ -72,9 +69,9 @@ namespace gps_with_imu
         Imu(/* args */);
         ~Imu();
         byte receivedData[36], kmx[4], kmy[4], kmz[4], kax[4], kay[4], kaz[4];
-        void initialize();
-        void calculateOffsets(int number_of_samples);
-        void UpdateReadings();
+        void LSMinitialize();
+        void LSMcalculateOffsets(int number_of_samples);
+        void LSMupdateReadings();
         void calibrateImu();
         void initializeAhrs();
         void updateOrientation();
@@ -91,4 +88,4 @@ namespace gps_with_imu
         vec3f getEulerOrientation();
         vec3f getPniAcceleration();
     };
-} // namespace gps_with_imu
+} // namespace imu_data_acquisition

@@ -18,7 +18,7 @@ ros::Publisher magnetic_field_publisher("magnetic_field", &magnetic_field_msg);
 
 ros::Publisher orientation_publisher("euler_orientation", &orientation_msg);
 
-namespace gps_with_imu
+namespace imu_data_acquisition
 {
   void initializeCommunication()
   {
@@ -63,4 +63,4 @@ namespace gps_with_imu
   }
 
   void checkForCommands() { nh.spinOnce(); }
-} // namespace gps_with_imu
+} // namespace imu_data_acquisition
